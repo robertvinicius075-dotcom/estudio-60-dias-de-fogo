@@ -1,6 +1,6 @@
 /**
  * ESTÚDIO 60 DIAS DE FOGO
- * Arquitetura de Direção IA (Gemini 1.5 Flash - Estável) + Fichas Visuais e Storyboard
+ * Arquitetura de Direção IA (Gemini 1.5 Flash Corrigido) + Fichas Visuais e Storyboard
  */
 
 // 1. ELENCO FIXO (Identidade Visual Preservada)
@@ -125,7 +125,7 @@ function renderCharacters() {
   });
 }
 
-// 3. PIPELINE DE DIRECIONAMENTO COM GEMINI API (ESTÁVEL)
+// 3. PIPELINE DE DIRECIONAMENTO COM GEMINI API
 async function handleGenerateStoryboard() {
   const promptText = document.getElementById('scenePrompt').value.trim();
   if (!promptText) {
@@ -201,7 +201,7 @@ async function handleGenerateStoryboard() {
   }
 }
 
-// Chamada Oficial via Fetch para a API do Gemini (Modelo Estável: gemini-1.5-flash)
+// Chamada Oficial via Fetch para a API do Gemini com o endpoint correto
 async function callGeminiApiDirector(promptText, totalDuration, autoDialogues) {
   const elencoStr = characters.map(c => `${c.name} (id: ${c.id}, Regra visual: ${c.visualLock})`).join('; ');
 
