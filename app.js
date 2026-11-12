@@ -1,6 +1,6 @@
 /**
  * ESTÚDIO 60 DIAS DE FOGO
- * Arquitetura de Direção IA (Gemini 1.5 Flash Definitivo) + Fichas Visuais e Storyboard
+ * Arquitetura de Direção IA (Gemini 1.5 Flash Definitivo & Blindado)
  */
 
 // 1. ELENCO FIXO (Identidade Visual Preservada)
@@ -23,8 +23,9 @@ let animationFrameId = null;
 let storyboardStartTime = 0;
 let lastSpokenIndex = -1;
 
-// Inicialização
+// Inicialização segura garantida após o DOM carregar
 document.addEventListener('DOMContentLoaded', () => {
+  console.log("Estúdio 60 Dias de Fogo inicializado com sucesso!");
   initTabs();
   renderCharacters();
   renderHistory();
@@ -45,44 +46,77 @@ function initTabs() {
 
 function bindEvents() {
   // Exemplo rápido
-  document.getElementById('btnLoadExample').addEventListener('click', () => {
-    document.getElementById('scenePrompt').value =
-      'Tainá está preparando uma panela na cozinha. Lolô entra, começa a provocar Tainá e as duas discutem. Tainá fica nervosa, mexe a panela e responde. Lolô aponta para ela e sai da cozinha. A câmera termina em um close no rosto de Tainá.';
-  });
+  const btnExample = document.getElementById('btnLoadExample');
+  if (btnExample) {
+    btnExample.addEventListener('click', () => {
+      document.getElementById('scenePrompt').value =
+        'Tainá está preparando uma panela na cozinha. Lolô entra, começa a provocar Tainá e as duas discutem. Tainá fica nervosa, mexe a panela e responde. Lolô aponta para ela e sai da cozinha. A câmera termina em um close no rosto de Tainá.';
+    });
+  }
 
   // Modal de Chave de API
-  document.getElementById('btnApiConfig').addEventListener('click', () => {
-    document.getElementById('geminiApiKeyInput').value = geminiApiKey;
-    document.getElementById('apiModal').classList.remove('hidden');
-  });
-  document.getElementById('btnCloseModal').addEventListener('click', () => {
-    document.getElementById('apiModal').classList.add('hidden');
-  });
-  document.getElementById('btnSaveApi').addEventListener('click', () => {
-    geminiApiKey = document.getElementById('geminiApiKeyInput').value.trim();
-    localStorage.setItem('fogo_gemini_key', geminiApiKey);
-    document.getElementById('apiModal').classList.add('hidden');
-    alert('Chave de API salva com segurança no seu navegador!');
-  });
+  const btnApiConfig = document.getElementById('btnApiConfig');
+  if (btnApiConfig) {
+    btnApiConfig.addEventListener('click', () => {
+      document.getElementById('geminiApiKeyInput').value = geminiApiKey;
+      document.getElementById('apiModal').classList.remove('hidden');
+    });
+  }
 
-  // Botão Gerar Roteiro / Direção
-  document.getElementById('btnGenerate').addEventListener('click', handleGenerateStoryboard);
+  const btnCloseModal = document.getElementById('btnCloseModal');
+  if (btnCloseModal) {
+    btnCloseModal.addEventListener('click', () => {
+      document.getElementById('apiModal').classList.add('hidden');
+    });
+  }
+
+  const btnSaveApi = document.getElementById('btnSaveApi');
+  if (btnSaveApi) {
+    btnSaveApi.addEventListener('click', () => {
+      geminiApiKey = document.getElementById('geminiApiKeyInput').value.trim();
+      localStorage.setItem('fogo_gemini_key', geminiApiKey);
+      document.getElementById('apiModal').classList.add('hidden');
+      alert('Chave de API salva com segurança no seu navegador!');
+    });
+  }
+
+  // Botão Principal Gerar Roteiro / Direção (Garantido)
+  const btnGenerate = document.getElementById('btnGenerate');
+  if (btnGenerate) {
+    btnGenerate.addEventListener('click', () => {
+      console.log("Botão Gerar clicado!");
+      handleGenerateStoryboard();
+    });
+  } else {
+    console.error("Erro crítico: Botão btnGenerate não encontrado no HTML!");
+  }
 
   // Player de Storyboard
-  document.getElementById('btnPlayStoryboard').addEventListener('click', toggleStoryboardPlay);
-  document.getElementById('btnExportJson').addEventListener('click', exportStoryboardJson);
+  const btnPlay = document.getElementById('btnPlayStoryboard');
+  if (btnPlay) {
+    btnPlay.addEventListener('click', toggleStoryboardPlay);
+  }
+
+  const btnExport = document.getElementById('btnExportJson');
+  if (btnExport) {
+    btnExport.addEventListener('click', exportStoryboardJson);
+  }
 
   // Limpar Histórico
-  document.getElementById('btnClearHistory').addEventListener('click', () => {
-    historyItems = [];
-    localStorage.setItem('fogo_history', JSON.stringify(historyItems));
-    renderHistory();
-  });
+  const btnClear = document.getElementById('btnClearHistory');
+  if (btnClear) {
+    btnClear.addEventListener('click', () => {
+      historyItems = [];
+      localStorage.setItem('fogo_history', JSON.stringify(historyItems));
+      renderHistory();
+    });
+  }
 }
 
 // 2. BIBLIOTECA DE PERSONAGENS & FICHAS VISUAIS
 function renderCharacters() {
   const grid = document.getElementById('charactersGrid');
+  if (!grid) return;
   grid.innerHTML = '';
 
   characters.forEach((char, index) => {
@@ -127,9 +161,12 @@ function renderCharacters() {
 
 // 3. PIPELINE DE DIRECIONAMENTO COM GEMINI API
 async function handleGenerateStoryboard() {
-  const promptText = document.getElementById('scenePrompt').value.trim();
+  const promptInput = document.getElementById('scenePrompt');
+  if (!promptInput) return;
+  
+  const promptText = promptInput.value.trim();
   if (!promptText) {
-    alert('Escreva um comando descrevendo a cena.');
+    alert('Por favor, escreva um comando descrevendo a cena.');
     return;
   }
 
@@ -138,7 +175,8 @@ async function handleGenerateStoryboard() {
   const autoDialogues = document.getElementById('autoDialogues').checked;
 
   const btnGenerate = document.getElementById('btnGenerate');
-  btnGenerate.disabled = true;
+  if (btnGenerate) btnGenerate.disabled = true;
+  
   showPipelineProgress(true);
   clearLogs();
 
@@ -188,20 +226,25 @@ async function handleGenerateStoryboard() {
     renderScriptTimeline(currentScript);
     startStoryboardPreview(currentScript);
 
-    document.getElementById('previewBadge').textContent = `${quality} • Storyboard Pronto`;
-    document.getElementById('btnPlayStoryboard').disabled = false;
-    document.getElementById('btnExportJson').disabled = false;
+    const badge = document.getElementById('previewBadge');
+    if (badge) badge.textContent = `${quality} • Storyboard Pronto`;
+    
+    const btnPlay = document.getElementById('btnPlayStoryboard');
+    if (btnPlay) btnPlay.disabled = false;
+    
+    const btnExport = document.getElementById('btnExportJson');
+    if (btnExport) btnExport.disabled = false;
 
   } catch (err) {
     console.error(err);
     addLog(`❌ Erro: ${err.message}`);
     alert(`Erro ao processar com a API do Gemini: ${err.message}`);
   } finally {
-    btnGenerate.disabled = false;
+    if (btnGenerate) btnGenerate.disabled = false;
   }
 }
 
-// Chamada Oficial via Fetch para a API do Gemini com tratamento robusto de JSON
+// Chamada Oficial via Fetch para a API do Gemini com tratamento robusto
 async function callGeminiApiDirector(promptText, totalDuration, autoDialogues) {
   const elencoStr = characters.map(c => `${c.name} (id: ${c.id}, Regra visual: ${c.visualLock})`).join('; ');
 
@@ -248,164 +291,11 @@ Retorne APENAS um objeto JSON válido (sem blocos de código markdown ou texto e
   const data = await response.json();
   let rawText = data.candidates[0].content.parts[0].text;
   
-  // Limpar marcações de markdown caso o modelo insira por engano
+  // Limpar marcações de markdown caso o modelo insira
   rawText = rawText.replace(/```json/g, '').replace(/```/g, '').trim();
 
   return JSON.parse(rawText);
 }
 
 // Fallback caso não haja chave inserida
-function generateFallbackStoryboard(promptText, totalDuration) {
-  const pSec = Math.max(4, Math.floor(totalDuration / 3));
-  return {
-    title: 'Cena Gerada — 60 Dias de Fogo',
-    scenes: [
-      {
-        durationSec: pSec,
-        character: 'taina',
-        camera: 'Plano Médio (9:16)',
-        bodyAction: 'Prepara os ingredientes na bancada com postura firme',
-        facialExpression: 'Concentrada, olhar determinado',
-        dialogue: 'Preciso garantir que o ponto esteja perfeito.',
-        sfx: 'Som de utensílios de cozinha'
-      },
-      {
-        durationSec: pSec,
-        character: 'lolo',
-        camera: 'Corte lateral dinâmico',
-        bodyAction: 'Entra em cena cruzando os braços com ironia',
-        facialExpression: 'Sorriso debochado, sobrancelha erguida',
-        dialogue: 'Tem certeza de que vai dar conta disso sozinha?',
-        sfx: 'Passos firmes'
-      },
-      {
-        durationSec: totalDuration - (pSec * 2),
-        character: 'taina',
-        camera: 'Close-up no rosto',
-        bodyAction: 'Vira o rosto rapidamente com expressão séria',
-        facialExpression: 'Séria e focada',
-        dialogue: 'Presta atenção na sua própria bancada.',
-        sfx: 'Trilha dramática'
-      }
-    ]
-  };
-}
-
-// 4. PRÉ-VISUALIZAÇÃO DE STORYBOARD ANIMADO & SÍNTESE DE VOZ (Navegador)
-function startStoryboardPreview(scriptData) {
-  document.getElementById('emptyViewport').classList.add('hidden');
-  isPlaying = true;
-  storyboardStartTime = performance.now();
-  lastSpokenIndex = -1;
-  document.getElementById('btnPlayStoryboard').textContent = '⏸️ Pausar Storyboard';
-
-  runStoryboardLoop(scriptData);
-}
-
-function runStoryboardLoop(scriptData) {
-  if (!isPlaying) return;
-
-  const canvas = document.getElementById('previewCanvas');
-  const ctx = canvas.getContext('2d');
-  const elapsed = (performance.now() - storyboardStartTime) / 1000;
-
-  // Encontrar cena ativa
-  let acc = 0;
-  let activeScene = scriptData.scenes[scriptData.scenes.length - 1];
-  let activeIndex = scriptData.scenes.length - 1;
-
-  for (let i = 0; i < scriptData.scenes.length; i++) {
-    if (elapsed >= acc && elapsed < acc + scriptData.scenes[i].durationSec) {
-      activeScene = scriptData.scenes[i];
-      activeIndex = i;
-      break;
-    }
-    acc += scriptData.scenes[i].durationSec;
-  }
-
-  // Disparar voz neural nativa na troca de cena
-  if (activeIndex !== lastSpokenIndex) {
-    lastSpokenIndex = activeIndex;
-    speakDialogue(activeScene);
-  }
-
-  // Reiniciar loop se acabar
-  if (elapsed >= scriptData.duration) {
-    storyboardStartTime = performance.now();
-    lastSpokenIndex = -1;
-  }
-
-  drawStoryboardFrame(ctx, canvas.width, canvas.height, activeScene, elapsed);
-  animationFrameId = requestAnimationFrame(() => runStoryboardLoop(scriptData));
-}
-
-function drawStoryboardFrame(ctx, w, h, scene, time) {
-  // Fundo do estúdio
-  const grad = ctx.createLinearGradient(0, 0, 0, h);
-  grad.addColorStop(0, '#161b22');
-  grad.addColorStop(1, '#0b0e14');
-  ctx.fillStyle = grad;
-  ctx.fillRect(0, 0, w, h);
-
-  // Animação leve de câmera (Zoom in/out simulado)
-  const zoom = 1.0 + Math.sin(time * 1.5) * 0.025;
-  ctx.save();
-  ctx.translate(w / 2, h / 2);
-  ctx.scale(zoom, zoom);
-  ctx.translate(-w / 2, -h / 2);
-
-  // Renderizar imagem de referência oficial se houver, senão placeholder estilizado
-  const char = scene.characterObj;
-  if (char && char.referenceImage) {
-    const img = new Image();
-    img.src = char.referenceImage;
-    if (img.complete) {
-      ctx.drawImage(img, 70, 160, 400, 540);
-    }
-  } else {
-    ctx.fillStyle = '#1f293d';
-    ctx.beginPath();
-    ctx.roundRect(60, 180, 420, 480, 20);
-    ctx.fill();
-
-    ctx.fillStyle = '#ff5722';
-    ctx.font = 'bold 24px Inter';
-    ctx.textAlign = 'center';
-    ctx.fillText(char ? char.name : scene.character, w / 2, 410);
-
-    ctx.fillStyle = '#9ca3af';
-    ctx.font = '14px Inter';
-    ctx.fillText('Ficha visual não importada', w / 2, 445);
-    ctx.fillText('(Acesse a aba Elenco para carregar)', w / 2, 470);
-  }
-
-  ctx.restore();
-
-  // HUD de Direção (Câmera e Ação)
-  ctx.fillStyle = 'rgba(0,0,0,0.7)';
-  ctx.fillRect(16, 16, w - 32, 75);
-
-  ctx.fillStyle = '#ff5722';
-  ctx.font = 'bold 14px Inter';
-  ctx.textAlign = 'left';
-  ctx.fillText(`🎥 ${scene.camera}`, 28, 40);
-
-  ctx.fillStyle = '#e5e7eb';
-  ctx.font = '13px Inter';
-  ctx.fillText(`🏃 ${scene.bodyAction.slice(0, 50)}...`, 28, 64);
-
-  // Legenda de Diálogo
-  if (scene.dialogue) {
-    ctx.fillStyle = 'rgba(0,0,0,0.85)';
-    ctx.beginPath();
-    ctx.roundRect(20, h - 170, w - 40, 110, 12);
-    ctx.fill();
-
-    ctx.fillStyle = '#ff9800';
-    ctx.font = 'bold 16px Inter';
-    ctx.textAlign = 'center';
-    ctx.fillText(char ? char.name.toUpperCase() : '', w / 2, h - 140);
-
-    ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 18px Inter';
-    wrapText(ctx, 
+function generateFallbackStoryboard(
