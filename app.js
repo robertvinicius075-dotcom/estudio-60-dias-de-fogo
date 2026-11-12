@@ -1,6 +1,6 @@
 /**
  * ESTÚDIO 60 DIAS DE FOGO
- * Arquitetura de Direção IA (Gemini 1.5 Flash Corrigido) + Fichas Visuais e Storyboard
+ * Arquitetura de Direção IA (Gemini 1.5 Flash Definitivo) + Fichas Visuais e Storyboard
  */
 
 // 1. ELENCO FIXO (Identidade Visual Preservada)
@@ -201,7 +201,7 @@ async function handleGenerateStoryboard() {
   }
 }
 
-// Chamada Oficial via Fetch para a API do Gemini com o endpoint correto
+// Chamada Oficial via Fetch para a API do Gemini com tratamento robusto de JSON
 async function callGeminiApiDirector(promptText, totalDuration, autoDialogues) {
   const elencoStr = characters.map(c => `${c.name} (id: ${c.id}, Regra visual: ${c.visualLock})`).join('; ');
 
@@ -212,7 +212,7 @@ Elenco oficial e regras de identidade: ${elencoStr}.
 Regras:
 - Crie diálogos naturais em português se autoDialogues=${autoDialogues}.
 - Especifique movimentos corporais, expressão facial, enquadramento de câmera e efeito sonoro.
-Retorne APENAS um objeto JSON válido (sem markdown ou texto extra) com a seguinte estrutura exata:
+Retorne APENAS um objeto JSON válido (sem blocos de código markdown ou texto extra) com a seguinte estrutura exata:
 {
   "title": "Título resumido da cena",
   "scenes": [
@@ -246,7 +246,11 @@ Retorne APENAS um objeto JSON válido (sem markdown ou texto extra) com a seguin
   }
 
   const data = await response.json();
-  const rawText = data.candidates[0].content.parts[0].text;
+  let rawText = data.candidates[0].content.parts[0].text;
+  
+  // Limpar marcações de markdown caso o modelo insira por engano
+  rawText = rawText.replace(/```json/g, '').replace(/```/g, '').trim();
+
   return JSON.parse(rawText);
 }
 
@@ -404,117 +408,4 @@ function drawStoryboardFrame(ctx, w, h, scene, time) {
 
     ctx.fillStyle = '#ffffff';
     ctx.font = 'bold 18px Inter';
-    wrapText(ctx, `"${scene.dialogue}"`, w / 2, h - 110, w - 60, 24);
-  }
-}
-
-function speakDialogue(scene) {
-  if (!scene || !scene.dialogue || !('speechSynthesis' in window)) return;
-  window.speechSynthesis.cancel();
-  const utt = new SpeechSynthesisUtterance(scene.dialogue);
-  utt.lang = 'pt-BR';
-  utt.rate = 1.05;
-  window.speechSynthesis.speak(utt);
-}
-
-function toggleStoryboardPlay() {
-  if (!currentScript) return;
-  isPlaying = !isPlaying;
-  document.getElementById('btnPlayStoryboard').textContent = isPlaying ? '⏸️ Pausar Storyboard' : '▶️ Reproduzir Storyboard & Voz';
-  if (isPlaying) {
-    storyboardStartTime = performance.now();
-    runStoryboardLoop(currentScript);
-  } else {
-    window.speechSynthesis.cancel();
-    cancelAnimationFrame(animationFrameId);
-  }
-}
-
-function exportStoryboardJson() {
-  if (!currentScript) return;
-  const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(currentScript, null, 2));
-  const dlAnchor = document.createElement('a');
-  dlAnchor.setAttribute("href", dataStr);
-  dlAnchor.setAttribute("download", `storyboard-60-dias-de-fogo-${Date.now()}.json`);
-  dlAnchor.click();
-}
-
-// 5. HISTÓRICO E ROTEIROS
-function renderScriptTimeline(script) {
-  const container = document.getElementById('scriptContainer');
-  const timeline = document.getElementById('scriptTimeline');
-  container.classList.remove('hidden');
-  timeline.innerHTML = '';
-
-  script.scenes.forEach((sc, idx) => {
-    const div = document.createElement('div');
-    div.className = 'scene-card';
-    div.innerHTML = `
-      <div><strong>Cena ${idx + 1} (${sc.durationSec}s) — ${sc.characterObj ? sc.characterObj.name : sc.character}</strong></div>
-      <div class="muted">🎥 ${sc.camera} | 😊 ${sc.facialExpression}</div>
-      <div>🏃 ${sc.bodyAction}</div>
-      ${sc.dialogue ? `<div style="color:#ff9800; margin-top:4px;">💬 "${sc.dialogue}"</div>` : ''}
-    `;
-    timeline.appendChild(div);
-  });
-}
-
-function saveToHistory(item) {
-  historyItems.unshift(item);
-  if (historyItems.length > 15) historyItems.pop();
-  localStorage.setItem('fogo_history', JSON.stringify(historyItems));
-  renderHistory();
-}
-
-function renderHistory() {
-  const list = document.getElementById('historyList');
-  if (!historyItems.length) {
-    list.innerHTML = '<p class="muted">Nenhum roteiro gerado ainda.</p>';
-    return;
-  }
-  list.innerHTML = historyItems.map(item => `
-    <div class="history-item">
-      <div>
-        <strong>${item.title || 'Roteiro de Cena'}</strong>
-        <p class="muted" style="font-size:0.8rem;">"${item.prompt.slice(0, 80)}..."</p>
-        <span style="font-size:0.75rem; color:#10b981;">${item.duration}s • ${item.createdAt}</span>
-      </div>
-    </div>
-  `).join('');
-}
-
-// Utilitários
-function showPipelineProgress(show) {
-  document.getElementById('pipelineStatus').classList.toggle('hidden', !show);
-}
-function updateProgress(percent, text) {
-  document.getElementById('progressFill').style.width = `${percent}%`;
-  document.getElementById('pipelinePercent').textContent = `${percent}%`;
-  document.getElementById('pipelineStepText').textContent = text;
-}
-function addLog(msg) {
-  const li = document.createElement('li');
-  li.textContent = msg;
-  document.getElementById('pipelineLogs').appendChild(li);
-}
-function clearLogs() {
-  document.getElementById('pipelineLogs').innerHTML = '';
-}
-function sleep(ms) {
-  return new Promise(r => setTimeout(r, ms));
-}
-function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
-  const words = text.split(' ');
-  let line = '';
-  for (let n = 0; n < words.length; n++) {
-    const testLine = line + words[n] + ' ';
-    if (ctx.measureText(testLine).width > maxWidth && n > 0) {
-      ctx.fillText(line, x, y);
-      line = words[n] + ' ';
-      y += lineHeight;
-    } else {
-      line = testLine;
-    }
-  }
-  ctx.fillText(line, x, y);
-}
+    wrapText(ctx, 
