@@ -1,6 +1,6 @@
 /**
  * ESTÚDIO 60 DIAS DE FOGO
- * Arquitetura de Direção IA (Gemini API) + Fichas Visuais e Storyboard Interativo
+ * Arquitetura de Direção IA (Gemini 1.5 Flash - Estável) + Fichas Visuais e Storyboard
  */
 
 // 1. ELENCO FIXO (Identidade Visual Preservada)
@@ -125,7 +125,7 @@ function renderCharacters() {
   });
 }
 
-// 3. PIPELINE DE DIRECIONAMENTO COM GEMINI API (REAL E ATUALIZADO)
+// 3. PIPELINE DE DIRECIONAMENTO COM GEMINI API (ESTÁVEL)
 async function handleGenerateStoryboard() {
   const promptText = document.getElementById('scenePrompt').value.trim();
   if (!promptText) {
@@ -143,7 +143,7 @@ async function handleGenerateStoryboard() {
   clearLogs();
 
   try {
-    updateProgress(25, 'Conectando ao Diretor de IA (Gemini 3.8 Flash)...');
+    updateProgress(25, 'Conectando ao Diretor de IA (Gemini 1.5 Flash)...');
     addLog('Enviando prompt e fichas do elenco para o modelo...');
 
     let storyboardData;
@@ -201,7 +201,7 @@ async function handleGenerateStoryboard() {
   }
 }
 
-// Chamada Oficial via Fetch para a API do Gemini (Modelo Atualizado: gemini-3.8-flash)
+// Chamada Oficial via Fetch para a API do Gemini (Modelo Estável: gemini-1.5-flash)
 async function callGeminiApiDirector(promptText, totalDuration, autoDialogues) {
   const elencoStr = characters.map(c => `${c.name} (id: ${c.id}, Regra visual: ${c.visualLock})`).join('; ');
 
@@ -229,7 +229,7 @@ Retorne APENAS um objeto JSON válido (sem markdown ou texto extra) com a seguin
 }`;
 
   const response = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${geminiApiKey}`,
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiApiKey}`,
     {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
