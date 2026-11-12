@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Estúdio 60 Dias de Fogo | Roteirista e Diretor IA</title>
+  <meta name="theme-color" content="#0f1115" />
+  <link rel="stylesheet" href="style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Cabeçalho -->
+    <header class="topbar">
+      <div class="brand">
+        <span class="fire-badge">🔥</span>
+        <div>
+          <h1>Estúdio 60 Dias de Fogo</h1>
+          <span class="subtitle">Diretor de IA & Pipeline de Animação 9:16</span>
+        </div>
+      </div>
+      <div class="topbar-actions">
+        <button id="btnApiConfig" class="btn-secondary" title="Configurar Chaves de API com Segurança">
+          ⚙️ Chave de API (Gemini)
+        </button>
+      </div>
+    </header>
+
+    <!-- Navegação (Abas) -->
+    <nav class="tabs-nav">
+      <button class="tab-btn active" data-tab="studio">🎬 Estúdio de Criação</button>
+      <button class="tab-btn" data-tab="characters">🎭 Elenco Fixo (5)</button>
+      <button class="tab-btn" data-tab="history">🎞️ Roteiros Gerados</button>
+    </nav>
+
+    <!-- ABA 1: ESTÚDIO DE CRIAÇÃO -->
+    <main id="tab-studio" class="tab-content active">
+      <div class="studio-grid">
+        
+        <!-- Coluna Esquerda: Comandos e Parâmetros -->
+        <section class="panel control-panel">
+          <div class="panel-header">
+            <h2>Comando da Cena</h2>
+            <button id="btnLoadExample" class="btn-link">Inserir exemplo</button>
+          </div>
+
+          <textarea 
+            id="scenePrompt" 
+            rows="5" 
+            placeholder="Ex: Tainá está preparando uma panela na cozinha. Lolô entra, começa a provocar Tainá e as duas discutem..."
+          ></textarea>
+
+          <div class="options-row">
+            <label class="checkbox-label">
+              <input type="checkbox" id="autoDialogues" checked />
+              <span>Gerar falas e diálogos automaticamente</span>
+            </label>
+            <label class="checkbox-label">
+              <input type="checkbox" id="autoSubtitles" checked />
+              <span>Incluir marcação de legendas e trilha</span>
+            </label>
+          </div>
+
+          <div class="settings-grid">
+            <div class="form-group">
+              <label for="videoDuration">Duração Alvo</label>
+              <select id="videoDuration">
+                <option value="15">15 segundos</option>
+                <option value="30" selected>30 segundos (Padrão)</option>
+                <option value="60">1 minuto</option>
+                <option value="120">2 minutos</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="videoQuality">Resolução Alvo</label>
+              <select id="videoQuality">
+                <option value="1080p" selected>Full HD 1080p (9:16)</option>
+                <option value="4k">Ultra HD 4K (9:16)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="format-badge">
+            <span>📱 Formato: <strong>9:16 Vertical</strong></span>
+            <span>🎞️ FPS: <strong>30 FPS</strong></span>
+          </div>
+
+          <button id="btnGenerate" class="btn-primary">
+            ✨ Processar Comando com Gemini IA
+          </button>
+
+          <!-- Status do Pipeline -->
+          <div id="pipelineStatus" class="pipeline-box hidden">
+            <div class="pipeline-header">
+              <span id="pipelineStepText">Conectando ao Diretor de IA...</span>
+              <span id="pipelinePercent">0%</span>
+            </div>
+            <div class="progress-bar">
+              <div id="progressFill" class="progress-fill"></div>
+            </div>
+            <ul id="pipelineLogs" class="pipeline-logs"></ul>
+          </div>
+        </section>
+
+        <!-- Coluna Direita: Storyboard Técnico e Prévia -->
+        <section class="panel preview-panel">
+          <div class="panel-header">
+            <h2>Storyboard & Direção Visual</h2>
+            <span id="previewBadge" class="status-pill">Aguardando comando</span>
+          </div>
+
+          <!-- Janela de Visualização (Canvas de Storyboard Animado & Voice-Over) -->
+          <div class="viewport-wrapper">
+            <div class="phone-frame">
+              <canvas id="previewCanvas" width="540" height="960"></canvas>
+              <div id="emptyViewport" class="empty-viewport">
+                <p>Escreva um comando ao lado e clique em processar para gerar o storyboard decupado.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="player-controls">
+            <button id="btnPlayStoryboard" class="btn-secondary" disabled>▶️ Reproduzir Storyboard & Voz</button>
+            <button id="btnExportJson" class="btn-success" disabled>💾 Baixar Roteiro JSON</button>
+          </div>
+
+          <!-- Roteiro Técnico Decupado -->
+          <div id="scriptContainer" class="script-box hidden">
+            <h3>📋 Decupagem Técnica de Cenas (Gerada pela IA)</h3>
+            <div id="scriptTimeline" class="script-timeline"></div>
+          </div>
+        </section>
+
+      </div>
+    </main>
+
+    <!-- ABA 2: ELENCO FIXO E FICHAS VISUAIS -->
+    <main id="tab-characters" class="tab-content">
+      <div class="panel">
+        <div class="panel-header">
+          <div>
+            <h2>Elenco Fixo & Fichas Visuais (Identidade Protegida)</h2>
+            <p class="muted">Importe as imagens oficiais de referência para cada personagem. O sistema as utilizará para travar a identidade nas futuras renderizações de vídeo.</p>
+          </div>
+        </div>
+        <div id="charactersGrid" class="characters-grid"></div>
+      </div>
+    </main>
+
+    <!-- ABA 3: HISTÓRICO DE ROTEIROS -->
+    <main id="tab-history" class="tab-content">
+      <div class="panel">
+        <div class="panel-header">
+          <h2>Roteiros & Storyboards Anteriores</h2>
+          <button id="btnClearHistory" class="btn-secondary">Limpar Histórico</button>
+        </div>
+        <div id="historyList" class="history-list"></div>
+      </div>
+    </main>
+  </div>
+
+  <!-- MODAL DE CONFIGURAÇÃO SEGURA DA CHAVE DE API -->
+  <div id="apiModal" class="modal hidden">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>⚙️ Configuração Segura da API</h3>
+        <button id="btnCloseModal" class="btn-close">✖</button>
+      </div>
+      <p class="muted small">
+        Insira sua chave da API do Google Gemini. Para segurança, a chave é armazenada **exclusivamente no armazenamento local do seu navegador** (localStorage) e nunca é enviada para o código público do GitHub.
+      </p>
+
+      <div class="form-group" style="margin-top: 14px;">
+        <label>Google Gemini API Key</label>
+        <input type="password" id="geminiApiKeyInput" placeholder="Cole sua chave AIzaSy..." />
+        <small class="hint">Obtenha gratuitamente no Google AI Studio.</small>
+      </div>
+
+      <div class="modal-footer" style="margin-top: 18px;">
+        <button id="btnSaveApi" class="btn-primary">Salvar Chave com Segurança</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
